@@ -89,8 +89,11 @@ class SingleFactorStats:
         for ret in ts_prtf_returns:
             prtf_returns.append(ret.iloc[-1])
         return prtf_returns
+    
+    def show_entire_quantile_groups_returns(self):
+        pass
 
-    def show_quantile_groups_returns(self):
+    def show_annual_quantile_groups_returns(self):
         ts_quantile_returns = self.get_same_weight_ts_prtf_returns()
         fig = go.Figure()
         for i, ret in enumerate(ts_quantile_returns):
@@ -103,7 +106,7 @@ class SingleFactorStats:
         fig.show()
         # st.plotly_chart(fig)
 
-    def show_quantile_groups_stats(self):
+    def show_annual_quantile_groups_stats(self):
         quantile_returns = self.get_prtf_returns()
         quantile_medians = self.get_factor_group_medians()
         fig = go.Figure()
