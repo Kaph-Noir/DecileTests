@@ -15,7 +15,7 @@ class SingleFactorDataHandler:
         self.ratio = ratio
         self.duration = duration
 
-    def get_period_ts_data(self, ts_data):
+    def get_annual_ts_data(self, ts_data):
         if self.duration == "y":
             self.ts_data = ts_data.loc[DateTimeUtils.get_str_yyyy_mm_dd(self.yyyymmdd):DateTimeUtils.get_str_yyyy_mm_dd_next_y(self.yyyymmdd)]  # get specific period ts data
             self.ts_data = self.ts_data.dropna(how="all", axis="columns")  # drop columns with only NaN values
@@ -29,8 +29,8 @@ class SingleFactorDataHandler:
         return target_tickers
     
     def __call__(self):
-        ts_daily_returns = self.get_period_ts_data(self.ts_daily_returns)
-        ratio = self.get_period_ts_data(self.ratio)
+        ts_daily_returns = self.get_annual_ts_data(self.ts_daily_returns)
+        ratio = self.get_annual_ts_data(self.ratio)
         target_tickers = self.get_tickers_intersection(ts_daily_returns, ratio)
         ratio = ratio[target_tickers]
         return ts_daily_returns, ratio
@@ -83,30 +83,31 @@ class SingleFactorStats:
             ts_prtf_returns.append(ts_prtf_return)
         return ts_prtf_returns
 
-    def get_prtf_returns(self):
+    def get_prtf_annual_returns(self):
         ts_prtf_returns = self.get_same_weight_ts_prtf_returns()
         prtf_returns = list()
         for ret in ts_prtf_returns:
             prtf_returns.append(ret.iloc[-1])
         return prtf_returns
     
-    def show_entire_quantile_groups_returns(self):
+    def show_entire_groups_returns(self):
         pass
 
-    def show_annual_quantile_groups_returns(self):
+    def show_annual_groups_returns(self):
         ts_quantile_returns = self.get_same_weight_ts_prtf_returns()
         fig = go.Figure()
         for i, ret in enumerate(ts_quantile_returns):
-            fig.add_trace(go.Scatter(x=ret.index, y=ret.values, mode='lines', name=f'{i + 1}분위'))
-            fig.update_xaxes(
-            tickformat="%Y-%m-%d",
-            title='Date')
-            fig.update_layout(title_text=f"{self.factor_name} {str(self.target_date)[0:4]}",
-                            title_x=0.5)
+            if i == 0 or i == 9:
+                fig.add_trace(go.Scatter(x=ret.index, y=ret.values, mode='lines', name=f'{i + 1}분위'))
+                fig.update_xaxes(
+                tickformat="%Y-%m-%d",
+                title='Date')
+                fig.update_layout(title_text=f"{self.factor_name} 10분위 수익률 {str(self.target_date)[0:4]}",
+                                title_x=0.5)
         fig.show()
         # st.plotly_chart(fig)
 
-    def show_annual_quantile_groups_stats(self):
+    def show_annual_groups_stats(self):
         quantile_returns = self.get_prtf_returns()
         quantile_medians = self.get_factor_group_medians()
         fig = go.Figure()
@@ -124,7 +125,7 @@ class SingleFactorStats:
             yaxis='y2',
             offsetgroup=1
         ))
-        fig.update_layout(title_text=f"{self.factor_name} {str(self.target_date)[0:4]}",
+        fig.update_layout(title_text=f"{self.factor_name} 10분위 수익률 {str(self.target_date)[0:4]}",
                         title_x=0.5,
                         showlegend=True,
                         xaxis=dict(title='Rank', dtick=1),
