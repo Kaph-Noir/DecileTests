@@ -82,7 +82,7 @@ class SingleFactorStats:
             weighted_returnss.append(weighted_returns.sum(axis="columns"))
         return weighted_returnss
 
-    def get_same_weight_prtf_ts_returns(self):
+    def get_same_weight_ts_prtf_returns(self):
         groups = self.get_factor_groups()
         ts_prtf_returns = list()
         for i in range(1, self.q + 1):
@@ -113,7 +113,7 @@ class SingleFactorStats:
                 fig.update_xaxes(
                 tickformat="%Y-%m-%d",
                 title='Date')
-                fig.update_layout(title_text=f"{self.factor_name} 10분위 수익률 {str(self.target_date)[0:4]}",
+                fig.update_layout(title_text=f"{self.factor_name} 10분위 누적 수익률 {str(self.target_date)[0:4]}",
                                 title_x=0.5)
         fig.show()
         # st.plotly_chart(fig)
@@ -136,7 +136,7 @@ class SingleFactorStats:
             yaxis='y2',
             offsetgroup=1
         ))
-        fig.update_layout(title_text=f"{self.factor_name} 10분위 수익률 {str(self.target_date)[0:4]}",
+        fig.update_layout(title_text=f"{self.factor_name} 10분위 연환산 수익률 {str(self.target_date)[0:4]}",
                         title_x=0.5,
                         showlegend=True,
                         xaxis=dict(title='Rank', dtick=1),
