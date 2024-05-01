@@ -9,6 +9,7 @@ class DateTimeUtils:
         _type_: _description_
     """
 
+    @staticmethod
     def get_str_yyyy(self, yyyymmdd: int) -> str:
         return str(yyyymmdd)[0:4]
     
@@ -24,6 +25,7 @@ class DateTimeUtils:
     def get_int_yyyymm(yyyymmdd: int) -> int:
         return int(str(yyyymmdd)[0:6])  # yyyymmdd // 100
     
+    @staticmethod
     def get_str_yyyymmdd(self, yyyymmdd: int) -> str:
         return str(yyyymmdd)
 
@@ -31,8 +33,9 @@ class DateTimeUtils:
     def get_str_yyyy_mm_dd(yyyymmdd: int) -> str:
         return dt.strftime(dt.strptime(str(yyyymmdd), "%Y%m%d"), "%Y-%m-%d")
 
-    def get_str_yyyy_mm_dd_next_y(self, yyyymmdd: int) -> str:
-        if self.get_int_yyyy(self.get_str_yyyy(yyyymmdd)) % 4 == 3:
-            return dt.strftime(dt.strptime(self.get_str_yyyymmdd(yyyymmdd), "%Y%m%d") + timedelta(days=365), "%Y-%m-%d")
+    @staticmethod
+    def get_str_yyyy_mm_dd_next_y(yyyymmdd: int) -> str:
+        if int(str(yyyymmdd)) % 4 == 3:
+            return dt.strftime(dt.strptime(str(yyyymmdd), "%Y%m%d") + timedelta(days=365), "%Y-%m-%d")
         else:
-            return dt.strftime(dt.strptime(self.get_str_yyyymmdd(yyyymmdd), "%Y%m%d") + timedelta(days=364), "%Y-%m-%d")
+            return dt.strftime(dt.strptime(str(yyyymmdd), "%Y%m%d") + timedelta(days=364), "%Y-%m-%d")

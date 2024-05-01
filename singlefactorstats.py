@@ -70,8 +70,19 @@ class SingleFactorStats:
         for i in range(1, self.q + 1):
             group_median.append(self.ratio.loc[self.target_date, groups[groups==i].index].median())
         return group_median
+    
+    def get_same_weight_returns(self):
+        groups = self.get_factor_groups()
+        weighted_returnss = list()
+        for i in range(1, self.q + 1):
+            group = groups[groups==i]
+            target_tickers = group.index
+            weight = 1 / len(target_tickers)
+            weighted_returns = self.ts_rets[target_tickers] * weight
+            weighted_returnss.append(weighted_returns.sum(axis="columns"))
+        return weighted_returnss
 
-    def get_same_weight_ts_prtf_returns(self):
+    def get_same_weight_prtf_ts_returns(self):
         groups = self.get_factor_groups()
         ts_prtf_returns = list()
         for i in range(1, self.q + 1):
@@ -108,7 +119,7 @@ class SingleFactorStats:
         # st.plotly_chart(fig)
 
     def show_annual_groups_stats(self):
-        quantile_returns = self.get_prtf_returns()
+        quantile_returns = self.get_prtf_annual_returns()
         quantile_medians = self.get_factor_group_medians()
         fig = go.Figure()
         fig.add_trace(go.Bar(
