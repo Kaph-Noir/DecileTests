@@ -1,8 +1,14 @@
 import pandas as pd
+from pathlib import Path
 import plotly.graph_objects as go
 from datetimeutils import DateTimeUtils
 import streamlit as st
 
+
+data_dir_path = Path(r"./input")
+kospi200 = pd.read_excel(data_dir_path / "KOSPI200.xlsx", index_col="Date")
+benchmark_daily_return = kospi200.pct_change()
+benchmark_cumulative_return = (benchmark_daily_return + 1).cumprod() - 1
 
 class SingleFactorDataHandler:
     """
@@ -113,8 +119,11 @@ class SingleFactorStats:
                 fig.update_xaxes(
                 tickformat="%Y-%m-%d",
                 title='Date')
-                fig.update_layout(title_text=f"{self.factor_name} 10분위 누적 수익률 {str(self.target_date)[0:4]}",
-                                title_x=0.5)
+        fig.add_trace(go.Scatter(x=benchmark_daily_return['Close'].index, y=benchmark_daily_return['Close'].values, mode='lines', name='KOSPI200'))
+        fig.update_xaxes(
+        tickformat="%Y-%m-%d",
+        title='Date')
+        fig.update_layout(title_text=f"{self.factor_name} 10분위 누적 수익률 {str(self.target_date)[0:4]}", title_x=0.5)
         fig.show()
         # st.plotly_chart(fig)
 
