@@ -5,11 +5,6 @@ from datetimeutils import DateTimeUtils
 import streamlit as st
 
 
-data_dir_path = Path(r"./input")
-kospi200 = pd.read_excel(data_dir_path / "KOSPI200.xlsx", index_col="Date")
-benchmark_daily_return = kospi200.pct_change()
-benchmark_cumulative_return = (benchmark_daily_return + 1).cumprod() - 1
-
 class SingleFactorDataHandler:
     """
 
@@ -65,6 +60,10 @@ class SingleFactorStats:
         self.ratio = ratio
         self.factor_name = factor_name
         self.q = q
+        self.data_dir_path = Path(r"./input")
+        self.kospi200 = pd.read_excel(self.data_dir_path / "KOSPI200.xlsx", index_col="Date").loc[ts_rets.index.to_list()]
+        self.benchmark_daily_return = self.kospi200.pct_change()
+        self.benchmark_cumulative_return = (self.benchmark_daily_return + 1).cumprod() - 1
 
     def get_factor_groups(self) -> pd.Series:
         groups = pd.qcut(self.ratio.loc[self.target_date], q=self.q, labels=[i for i in range(1, self.q + 1)])
@@ -119,7 +118,7 @@ class SingleFactorStats:
                 fig.update_xaxes(
                 tickformat="%Y-%m-%d",
                 title='Date')
-        fig.add_trace(go.Scatter(x=benchmark_daily_return['Close'].index, y=benchmark_daily_return['Close'].values, mode='lines', name='KOSPI200'))
+        fig.add_trace(go.Scatter(x=self.benchmark_cumulative_return['Close'].index, y=self.benchmark_cumulative_return['Close'].values, mode='lines', name='KOSPI200'))
         fig.update_xaxes(
         tickformat="%Y-%m-%d",
         title='Date')
@@ -130,6 +129,7 @@ class SingleFactorStats:
     def show_annual_groups_stats(self):
         quantile_returns = self.get_prtf_annual_returns()
         quantile_medians = self.get_factor_group_medians()
+        
         fig = go.Figure()
         fig.add_trace(go.Bar(
             x=[i + 1 for i in range(self.q)],
@@ -145,6 +145,7 @@ class SingleFactorStats:
             yaxis='y2',
             offsetgroup=1
         ))
+        # fig.add_trace(go.Scatter(x=[i + 1 for i in range(self.q)], y=self.benchmark_cumulative_return['Close'].values[-1], mode='lines', name='Benchmark'))
         fig.update_layout(title_text=f"{self.factor_name} 10분위 연환산 수익률 {str(self.target_date)[0:4]}",
                         title_x=0.5,
                         showlegend=True,
