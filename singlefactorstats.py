@@ -69,12 +69,16 @@ class SingleFactorStats:
         groups = pd.qcut(self.ratio.loc[self.target_date], q=self.q, labels=[i for i in range(1, self.q + 1)])
         return groups
 
+    def get_factor_group_means(self) -> list:
+        groups = self.get_factor_groups()
+        group_means = [self.ratio.loc[self.target_date, groups[groups==i].index].mean() for i in range(1, self.q + 1)]
+        return group_means
+
     def get_factor_group_medians(self) -> list:
         groups = self.get_factor_groups()
-        group_median = list()
-        for i in range(1, self.q + 1):
-            group_median.append(self.ratio.loc[self.target_date, groups[groups==i].index].median())
-        return group_median
+        group_medians = list()
+        group_medians = [self.ratio.loc[self.target_date, groups[groups==i].index].median() for i in range(1, self.q + 1)]
+        return group_medians
     
     def get_same_weight_returns(self):
         groups = self.get_factor_groups()
@@ -126,9 +130,8 @@ class SingleFactorStats:
         fig.show()
         # st.plotly_chart(fig)
 
-    def show_annual_groups_stats(self):
+    def show_annual_groups_CAGR(self):
         quantile_returns = self.get_prtf_annual_returns()
-        quantile_medians = self.get_factor_group_medians()
         
         fig = go.Figure()
         fig.add_trace(go.Bar(
@@ -138,22 +141,44 @@ class SingleFactorStats:
             yaxis='y',
             offsetgroup=0
         ))
-        fig.add_trace(go.Bar(
-            x=[i + 1 for i in range(self.q)],
-            y=quantile_medians,
-            name=f'분위별 {self.factor_name} median',
-            yaxis='y2',
-            offsetgroup=1
-        ))
-        # fig.add_trace(go.Scatter(x=[i + 1 for i in range(self.q)], y=self.benchmark_cumulative_return['Close'].values[-1], mode='lines', name='Benchmark'))
+        fig.add_trace(go.Scatter(x=[i + 1 for i in range(self.q)], y=self.benchmark_cumulative_return['Close'].values[-1], mode='lines', name='Benchmark'))
         fig.update_layout(title_text=f"{self.factor_name} 10분위 연환산 수익률 {str(self.target_date)[0:4]}",
                         title_x=0.5,
                         showlegend=True,
                         xaxis=dict(title='Rank', dtick=1),
-                        yaxis=dict(title='CAGR (%)', side='left', range=[min(-max(quantile_returns) * 1.05, -0.5), max(max(quantile_returns) * 1.05, 0.5)]),  # 왼쪽 Y축 설정
-                        yaxis2=dict(title=f'분위별 {self.factor_name} median', overlaying='y', side='right', range=[-max(quantile_medians) * 1.05, max(quantile_medians) * 1.05]),  # 오른쪽 Y축 설정
-                        barmode='group',
-                        legend_yanchor="bottom")
+                        yaxis=dict(title='CAGR (%)', side='left', range=[min(-max(quantile_returns) * 1.05, -0.5), max(max(quantile_returns) * 1.05, 0.5)]))
         fig.update_yaxes(showgrid=False)
         fig.show()
         # st.plotly_chart(fig)
+
+    def show_annual_groups_stats(self):
+            quantile_means = self.get_factor_group_means()
+            quantile_medians = self.get_factor_group_medians()
+            
+            fig = go.Figure()
+            fig.add_trace(go.Bar(
+                x=[i + 1 for i in range(self.q)],
+                y=quantile_means,
+                name='CAGR',
+                yaxis='y',
+                offsetgroup=0
+            ))
+            fig.add_trace(go.Bar(
+                x=[i + 1 for i in range(self.q)],
+                y=quantile_medians,
+                name=f'분위별 {self.factor_name} median',
+                yaxis='y2',
+                offsetgroup=1
+            ))
+            # fig.add_trace(go.Scatter(x=[i + 1 for i in range(self.q)], y=self.benchmark_cumulative_return['Close'].values[-1], mode='lines', name='Benchmark'))
+            fig.update_layout(title_text=f"{self.factor_name} 10분위 연환산 수익률 {str(self.target_date)[0:4]}",
+                            title_x=0.5,
+                            showlegend=True,
+                            xaxis=dict(title='Rank', dtick=1),
+                            yaxis=dict(title='CAGR (%)', side='left', range=[min(-max(quantile_means) * 1.05, -0.5), max(max(quantile_means) * 1.05, 0.5)]),  # 왼쪽 Y축 설정
+                            yaxis2=dict(title=f'분위별 {self.factor_name} median', overlaying='y', side='right', range=[-max(quantile_medians) * 1.05, max(quantile_medians) * 1.05]),  # 오른쪽 Y축 설정
+                            barmode='group',
+                            legend_yanchor="bottom")
+            fig.update_yaxes(showgrid=False)
+            fig.show()
+            # st.plotly_chart(fig)
