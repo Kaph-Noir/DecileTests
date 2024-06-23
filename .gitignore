@@ -3,3 +3,4 @@
 *.xlsx
 *.pyc
 bar_plot_with_mean_line.html
+*.ipynb
