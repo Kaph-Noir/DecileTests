@@ -21,9 +21,18 @@ class SingleFactorDataHandler:
             self.ts_data = ts_data.loc[DateTimeUtils.get_str_yyyy_mm_dd(self.yyyymmdd):DateTimeUtils.get_str_yyyy_mm_dd_next_y(self.yyyymmdd)]  # get specific period ts data
             self.ts_data = self.ts_data.dropna(how="all", axis="columns")  # drop columns with only NaN values
             self.ts_data = self.ts_data.loc[:, self.ts_data.iloc[0].notna()]  # drop columns with NaN values at the begin
+        elif self.duration == "q":
+            pass
         else:
             pass
         return self.ts_data
+    
+    def get_quarter_ts_data(self, ts_data, yyyy):
+        starting_dates = ['0401', '0601', '0901', '1201']
+        for starting_date in starting_dates:
+            yyyymmdd = int(str(yyyy) + starting_date)
+            DateTimeUtils.get_str_yyyy_mm_dd_next_q(yyyymmdd)
+        pass
         
     def get_tickers_intersection(self, ts_rets: pd.DataFrame, ratio: pd.DataFrame) -> pd.Index:
         target_tickers = ts_rets.columns.intersection(ratio.columns)
@@ -159,7 +168,7 @@ class SingleFactorStats:
             fig.add_trace(go.Bar(
                 x=[i + 1 for i in range(self.q)],
                 y=quantile_means,
-                name='CAGR',
+                name=f'분위별 {self.factor_name} mean',
                 yaxis='y',
                 offsetgroup=0
             ))
@@ -167,16 +176,14 @@ class SingleFactorStats:
                 x=[i + 1 for i in range(self.q)],
                 y=quantile_medians,
                 name=f'분위별 {self.factor_name} median',
-                yaxis='y2',
+                yaxis='y',
                 offsetgroup=1
             ))
-            # fig.add_trace(go.Scatter(x=[i + 1 for i in range(self.q)], y=self.benchmark_cumulative_return['Close'].values[-1], mode='lines', name='Benchmark'))
-            fig.update_layout(title_text=f"{self.factor_name} 10분위 연환산 수익률 {str(self.target_date)[0:4]}",
+            fig.update_layout(title_text=f"{self.factor_name} 분위별 팩터 평균 및 중앙값 {str(self.target_date)[0:4]}",
                             title_x=0.5,
                             showlegend=True,
                             xaxis=dict(title='Rank', dtick=1),
-                            yaxis=dict(title='CAGR (%)', side='left', range=[min(-max(quantile_means) * 1.05, -0.5), max(max(quantile_means) * 1.05, 0.5)]),  # 왼쪽 Y축 설정
-                            yaxis2=dict(title=f'분위별 {self.factor_name} median', overlaying='y', side='right', range=[-max(quantile_medians) * 1.05, max(quantile_medians) * 1.05]),  # 오른쪽 Y축 설정
+                            yaxis=dict(title=f'분위별 {self.factor_name}', overlaying='y', side='left'),
                             barmode='group',
                             legend_yanchor="bottom")
             fig.update_yaxes(showgrid=False)

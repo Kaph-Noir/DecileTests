@@ -39,3 +39,7 @@ class DateTimeUtils:
             return dt.strftime(dt.strptime(str(yyyymmdd), "%Y%m%d") + timedelta(days=365), "%Y-%m-%d")
         else:
             return dt.strftime(dt.strptime(str(yyyymmdd), "%Y%m%d") + timedelta(days=364), "%Y-%m-%d")
+        
+    @staticmethod
+    def get_str_yyyy_mm_dd_next_q(yyyymmdd: int) -> str:
+        pass
