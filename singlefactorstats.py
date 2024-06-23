@@ -1,5 +1,6 @@
 import pandas as pd
 from pathlib import Path
+import datetime
 import plotly.graph_objects as go
 from datetimeutils import DateTimeUtils
 import streamlit as st
@@ -10,29 +11,38 @@ class SingleFactorDataHandler:
 
     """
     def __init__(self, ts_daily_returns: pd.DataFrame, ratio: pd.DataFrame, yyyy: int, duration: str="y"):
-        self.starting_date = '0401'
-        self.yyyymmdd = int(str(yyyy) + self.starting_date)
+        # self.starting_date = '0401'
+        self.starting_dates = ['0401', '0601', '0901', '1201']
+        self.yyyy = yyyy
+        # self.yyyymmdd = int(str(yyyy) + self.starting_date)
         self.ts_daily_returns = ts_daily_returns
         self.ratio = ratio
         self.duration = duration
 
+    def get_ts_data_for_period(self, ts_data, start_date, end_date):
+        ts_data = ts_data.loc[start_date:end_date]  # get specific period ts data
+        ts_data = ts_data.dropna(how="all", axis="columns")  # drop columns with only NaN values
+        ts_data = ts_data.loc[:, ts_data.iloc[0].notna()]  # drop columns with NaN values at the begin
+        return ts_data
+
     def get_annual_ts_data(self, ts_data):
         if self.duration == "y":
-            self.ts_data = ts_data.loc[DateTimeUtils.get_str_yyyy_mm_dd(self.yyyymmdd):DateTimeUtils.get_str_yyyy_mm_dd_next_y(self.yyyymmdd)]  # get specific period ts data
-            self.ts_data = self.ts_data.dropna(how="all", axis="columns")  # drop columns with only NaN values
-            self.ts_data = self.ts_data.loc[:, self.ts_data.iloc[0].notna()]  # drop columns with NaN values at the begin
+            self.yyyymmdd = int(str(self.yyyy) + self.starting_dates[0])
+            start_date = DateTimeUtils.get_str_yyyy_mm_dd(self.yyyymmdd)
+            end_date = DateTimeUtils.get_str_yyyy_mm_dd_next_y(self.yyyymmdd)
+            self.ts_data = self.get_ts_data_for_period(ts_data, start_date, end_date)
+
         elif self.duration == "q":
-            pass
+            self.ts_data = pd.DataFrame()
+            for date in self.starting_dates:
+                self.yyyymmdd = int(str(self.yyyy) + date)
+                start_date = DateTimeUtils.get_str_yyyy_mm_dd(self.yyyymmdd)
+                end_date = DateTimeUtils.get_str_yyyy_mm_dd_next_q(self.yyyymmdd)
+                quarterly_data = self.get_ts_data_for_period(ts_data, start_date, end_date)
+                self.ts_data = pd.concat([self.ts_data, quarterly_data])
         else:
             pass
         return self.ts_data
-    
-    def get_quarter_ts_data(self, ts_data, yyyy):
-        starting_dates = ['0401', '0601', '0901', '1201']
-        for starting_date in starting_dates:
-            yyyymmdd = int(str(yyyy) + starting_date)
-            DateTimeUtils.get_str_yyyy_mm_dd_next_q(yyyymmdd)
-        pass
         
     def get_tickers_intersection(self, ts_rets: pd.DataFrame, ratio: pd.DataFrame) -> pd.Index:
         target_tickers = ts_rets.columns.intersection(ratio.columns)
@@ -42,6 +52,7 @@ class SingleFactorDataHandler:
         ts_daily_returns = self.get_annual_ts_data(self.ts_daily_returns)
         ratio = self.get_annual_ts_data(self.ratio)
         target_tickers = self.get_tickers_intersection(ts_daily_returns, ratio)
+        # ts_daily_returns = ts_daily_returns[target_tickers]
         ratio = ratio[target_tickers]
         return ts_daily_returns, ratio
 
@@ -75,6 +86,7 @@ class SingleFactorStats:
         self.benchmark_cumulative_return = (self.benchmark_daily_return + 1).cumprod() - 1
 
     def get_factor_groups(self) -> pd.Series:
+        # self.ratio.loc[self.target_date].to_excel("./test_q.xlsx")
         groups = pd.qcut(self.ratio.loc[self.target_date], q=self.q, labels=[i for i in range(1, self.q + 1)])
         return groups
 
@@ -150,7 +162,7 @@ class SingleFactorStats:
             yaxis='y',
             offsetgroup=0
         ))
-        fig.add_trace(go.Scatter(x=[i + 1 for i in range(self.q)], y=self.benchmark_cumulative_return['Close'].values[-1], mode='lines', name='Benchmark'))
+        fig.add_trace(go.Scatter(x=[i + 1 for i in range(self.q)], y=[self.benchmark_cumulative_return['Close'].values[-1]] * self.q, mode='lines', name='Benchmark'))
         fig.update_layout(title_text=f"{self.factor_name} 10분위 연환산 수익률 {str(self.target_date)[0:4]}",
                         title_x=0.5,
                         showlegend=True,

@@ -42,4 +42,13 @@ class DateTimeUtils:
         
     @staticmethod
     def get_str_yyyy_mm_dd_next_q(yyyymmdd: int) -> str:
-        pass
+        yyyy = int(str(yyyymmdd)[:4])
+        mmdd = str(yyyymmdd)[4:]
+        if mmdd == '0401':
+            return str(yyyy) + '-' + '05-31'
+        elif mmdd == '0601':
+            return str(yyyy) + '-' + '08-31'
+        elif mmdd == '0901':
+            return str(yyyy) + '-' + '11-30'
+        else:
+            return str(yyyy + 1) + '-' + '03-31'
